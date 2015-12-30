@@ -75,7 +75,8 @@ Options:
   -h    Ignore shifted reads
         (default: will add shifted reads to a side's total read count if
         addition of the reads balances the left and right sides of a site)
-  -b    Path to directory containing bowtie and bowtie-build
+  -b    Path to directory containing bowtie and bowtie-build. For example:
+        /Users/myname/applications/bowtie_folder
         (default: assumes this directory is in your PATH)
   -p    Number of threads
         (default: 1)
@@ -131,8 +132,8 @@ if ($bowpath){
         print STDERR "WARNING: Could not find 'bowtie-build' at $bowpath. Searching PATH...\n";
     }
 }
-die "ERROR: Could not find bowtie in PATH. Make sure bowtie is installed and executable.\n" if !$bow_loc;
-die "ERROR: Could not find bowtie-build in PATH. Make sure bowtie is installed and executable.\n" if !$bb_loc;
+die "ERROR: Could not find bowtie in PATH. Make sure bowtie is installed and executable or use the '-b' option to give the path to the bowtie directory.\n" if !$bow_loc;
+die "ERROR: Could not find bowtie-build in PATH. Make sure bowtie is installed and executable or use the '-b' option to give the path to the bowtie directory.\n" if !$bb_loc;
 
 ## Read in barcodes (+/- reads +/- alingments)
 open (my $bin, "<", $bclist) or die "ERROR: Can't open $bclist: $!\n";
