@@ -40,7 +40,7 @@ For sequence reads generated using the "INSeq" transposon insertion sequencing p
 `-o` Output format for count files. Possible options include:
 + 'wiggl': Files will be in wiggle format that can be used as input to ESSENTIALS (default)
 + 'inseq': Files will be in in the format of *_bowtiemap_processed.txt files produced by Goodman et al's INSeq_analysis software
-+ 'essen': Files will be in the format of allta_split_*.counts.txt files produced by ESSENTIALS
++ 'essen': Files will be in the format of allta_split_*.counts.txt files produced by ESSENTIALS  
 `-s` Minimum number of total reads (left flank + right flank) at an insertion site required for output (default: 3)  
 `-d` Minimum difference in read counts betwen sides to trigger investigation of site flanks. A higher number may result in faster processing, but lower sensitivity for identifying read count discrepancies. Minimum value is 1. (default: 1)  
 `-h` Ignore "shifted" reads, i.e. reads that align perfectly without mismatches, but one base upstream or downstream from a "TA" insertion site. (default: "shifted" reads will be added to a flank's total read count if addition of the reads results in the two flanks having a more balanced read count)  
