@@ -17,6 +17,18 @@ Analysis of transposon insertion sequencing experiments depends on accurate dete
 3. Reference strain vs. parent strain variation
   - Read alignment is generally performed against a completed, annotated reference sequence of the microbial strain, however there is the potential for differences between the sequence of this reference strain and the sequence of the parent strain that was used in the lab to produce the transposon mutant library. These differences could include SNVs and/or indels that could result in inaccurate alignments
 
+  INSeq_read_preprocess.pl performs the following functions (currently only for sequencing data produced using the INSeq protocol):
+  
+  1. Separate multiplexed libraries by "barcode" sequence
+  2. Identify and trim transposon sequence from reads
+  3. Align reads to reference sequence(s)
+  4. Assign aligments to positions in reference sequence
+  5. Read count correction and filtering
+  6. Output read counts
+  
+  Reads with more than one base mismatch out of 16 or 17 are removed.
+  Generally, only reads aligning to potential Mariner transposon insertion sites (i.e. with terminal TA motifs) are counted unless the alignment is potentially "shifted", i.e. a perfect full-length alignment without mismatches at a potential transposon insertion site except that the alignment ends on "T" instead of "TA", or there is a single base mismatch at the terminal "T" or "A".
+  Generally reads 
 
 
 
