@@ -49,7 +49,30 @@ For sequence reads generated using the "INSeq" transposon insertion sequencing p
 `-p` Number of parallel threads to run (default: 1)
 
 **Program output:**  
+As the script runs, several statistics will be output to the screen. If you wish to capture these results, simply redirect STDOUT to a file like so:  
+`perl INSeq_read_preprocess.pl -r reads.fastq -c barcodes.txt -g reference_sequence.fasta > stats.txt`  
+or:  
+`perl INSeq_read_preprocess.pl -r reads.fastq -c barcodes.txt -g reference_sequence.fasta | tee stats.txt`  
 
+Barcode sorting, trimming, and transposon trimming results will take the following format:  
+```
+Total reads: xxx
+Total reads with barcode: xxx
+Total reads with transposon: xxx
+Transposons with 0 mismatch(es): xxx
+Transposons with 1 mismatch(es): xxx
+pool	bc	#_w_bc	%_w_bc	#_w_tn %_w_tn
+...
+```
+`Total reads` is the total number of reads found in the input read fastq file  
+`Total reads with barcode` is the total number of reads found to have a recognizable barcode sequence at the start of the read sequence  
+`Total reads with transposon` is the total number of reads (from those found to have a barcode sequence) that had the given transposon sequence at the expected position (16 or 17 bp from the 5' end after removal of barcode sequence)  
+`pool`: Pool ID  
+`bc`: Barcode  
+`#_w_bc`: Number of reads with this barcode  
+`%_w_bc`: Percentage of total reads with this barcode  
+`#_w_tn`: Number of reads with this barcode found to have the given transposon sequence in the expected position  
+`%_w_tn`: Percentage of reads with this barcode found to have the given transposon sequence in the expected position
 
 **Output files:**    
 Files beginning with "temp_" can be safely deleted.  
