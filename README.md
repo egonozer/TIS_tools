@@ -18,16 +18,16 @@ For sequence reads generated using the "INSeq" transposon insertion sequencing p
   5. Read count correction and filtering
   6. Output read counts
   
-  **Prerequisites:** 
+  **Prerequisites:**   
   [bowtie](http://bowtie-bio.sourceforge.net/index.shtml) (version 0.12.8 or higher)
   
-  **Usage:** 
+  **Usage:**   
   `perl INSeq_read_preprocess.pl [options] -r <reads.fastq> -c <barcodes.txt> -g <reference_sequence.fasta>`
 
-  **Required Arguments:**
-  `-r` Read sequence file, in fastq format. Can remain gzipped.
-  `-c` Tab-delimited text file of barcodes in the following format, one barcode per line:
-  `pool_id<tab>barcode`
-  Optional: If you are re-processing already de-barcoded and transposon-trimmed reads or if reprocessing previously-performed bowtie alignments, you can also include paths to either the processed read output files with or without paths to the bowtie alignment files. To include the sorted reads file (as previously output by this script): `pool_id<tab>barcode<tab>/path/to/reads.fasta`. To also include the bowtie alignment (as previously output by this program): `pool_id<tab>barcode<tab>/path/to/reads.fasta<tab>/path/to/alignment.bowtie`.
+  **Required Arguments:**  
+  `-r` Read sequence file, in fastq format. Can remain gzipped.  
+  `-c` Tab-delimited text file of barcodes in the following format, one barcode per line:  
+  `pool_id<tab>barcode`  
+  Optional: If you are re-processing already de-barcoded and transposon-trimmed reads or if reprocessing previously-performed bowtie alignments, you can also include paths to either the processed read output files with or without paths to the bowtie alignment files. To include the sorted reads file (as previously output by this script): `pool_id<tab>barcode<tab>/path/to/reads.fasta`. To also include the bowtie alignment (as previously output by this program): `pool_id<tab>barcode<tab>/path/to/reads.fasta<tab>/path/to/alignment.bowtie`.  
   `-g` Reference genome sequence file, in fasta format. For best results, this file must include sequences for ALL genetic material present in the organism (i.e. chromosomes and plasmids).
   
