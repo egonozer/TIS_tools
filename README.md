@@ -48,4 +48,13 @@ For sequence reads generated using the "INSeq" transposon insertion sequencing p
 `-b` Path to directory containing bowtie and bowtie-build. For example: /Users/myname/applications/bowtie_folder (default: assumes this directory is in your PATH)  
 `-p` Number of parallel threads to run (default: 1)
 
+**Program output:**  
+
+
 **Output files:**    
+Files beginning with "temp_" can be safely deleted.  
+Files will start with a prefix corresponding to the pool_id and barcode given in the barcode text file above. For example, if one of the pool IDs was "Input_1" identified with barcode "TATA", then all files relating to this pool will be prefixed with "Input_1_TATA".  
+- `<prefix>.reads.fasta`: Fasta formatted file of all sorted, de-barcoded, and transposon trimmed read sequences associated with this pool. 
+- `<prefix>.bowtie`: Alignment file produced by bowtie
+- `<prefix>.<reference_sequence>.wiggle`: Read alignment counts for each of the individual records that was present in the reference genome sequence file. For example, if the file given to the `-r` option contained one chromosomal sequence record and one plasmid sequence record there should be two of these files per barcode, each named according to the sequence record name and with coordinates corresponding to positions along the indicated sequence. If outputting in the default "wiggle" format, each line of the file will contain a sequence position (1-based) corresponding to a transposon insertion site and the number of reads aligning to that position separated by a tab. When a particular position is listed twice, the first listing is the number of reads aligning to the left flank (upstream) of the insertion site and the second listing is the number of reads aligning to the right flank (downstream) of the insertion site.
+
