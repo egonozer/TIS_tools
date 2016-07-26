@@ -32,7 +32,7 @@ For sequence reads generated using the "INSeq" transposon insertion sequencing p
 `-g` Reference genome sequence file, in fasta format. For best results, this file must include sequences for ALL genetic material present in the organism (i.e. chromosomes and plasmids).
   
 **Encouraged, but optional:**  
-`-w` Sequence of parent strain that was used ot produce transposon mutagenesis library, in fasta format. OK if this is a multi-contig draft assembly.
+`-w` Sequence of actual parent strain that was used to produce transposon mutagenesis library, in fasta format. OK if this is a multi-contig draft assembly.
   
 **Other options:**  
 `-t` Transposon sequence (default: "ACAGGTTG")  
