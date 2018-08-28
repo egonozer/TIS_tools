@@ -112,7 +112,7 @@ while (my $line = <$tin>){
             if ($tmp[$i] eq "logFC"){
                 $fcol = $i;
             }
-            if ($tmp[$i] eq "adj.P.Val"){
+            if ($tmp[$i] eq "adj.P.Val" or $tmp[$i] eq "FDR"){ #FDR is the output from newer versions of edgeR
                 $pcol = $i;
             }
         }

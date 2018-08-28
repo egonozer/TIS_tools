@@ -94,7 +94,7 @@ my $bclist  = $opt_c if $opt_c;
 my $reffile = $opt_g if $opt_g;
 
 my $tn      = $opt_t ? $opt_t : "ACAGGTTG";
-my $maxmm   = $opt_m ? $opt_m : 1;
+my $maxmm   = defined $opt_m ? $opt_m : 1; #added 'defined' so users can enter 0
 my $outform = $opt_o ? $opt_o : "wiggl";
 my $assem   = $opt_w if $opt_w;
 my $minrd   = $opt_s ? $opt_s : 3;
@@ -173,39 +173,57 @@ if ($proc_reads){
     my %tn_mms;
     print STDERR "\tProcessing read $total_reads ... ";
     while (<$rin>){
-        chomp (my $x1 = $_);
+        my $x1 = $_;
         chomp (my $seq = <$rin>);
-        chomp (my $x2 = <$rin>);
-        chomp (my $x3 = <$rin>);
+        my $x2 = <$rin>;
+        my $x3 = <$rin>;
         $total_reads++;
-        print STDERR "\r\tProcessing read $total_reads ... " if ($total_reads % 10000 == 0);
-        my $first4 = substr($seq, 0, 4);
+        print STDERR "\r\tProcessing read $total_reads ... " if ($total_reads % 100000 == 0);
+        my $first4 = substr($seq, 0, 4, ""); #automatically strip the first 4 bases so I don't have to do another substr below (substr benchmarked faster than regex).
         next if $has_reads{$first4}; #skip saving these reads if a read file was given for this barcode
         if ($bc{$first4}){
             $reads_w_bc{$first4}++;
             $tot_bc++;
-            my $subseq = substr($seq, 4);
+            #my $subseq = substr($seq, 4);
             my $tn_match;
             #look for perfect transposon sequence matches. This is fastest
-            for my $i (16 .. 17){
-                my $tseq = substr($subseq, $i, $tnleng);
-                if ($tseq eq $tn){
+            #for my $i (16 .. 17){
+            #    #my $tseq = substr($subseq, $i, $tnleng);
+            #    my $tseq = substr($seq, $i, $tnleng);
+            #    if ($tseq eq $tn){
+            #        $reads_w_tn{$first4}++;
+            #        $tot_tn++;
+            #        $tn_mms{0}++;
+            #        $tn_match = $i;
+            #        last;
+            #    }
+            #}
+            #maybe this is faster since it tests for both 16 and 17 simultaneously?
+            if ($seq =~ m/$tn/){
+                if ($-[0] == 16 or $-[0] == 17){
+                    $tn_match = $-[0];
                     $reads_w_tn{$first4}++;
                     $tot_tn++;
                     $tn_mms{0}++;
-                    $tn_match = $i;
-                    last;
                 }
             }
+            
             #if a perfect transposon match was not found, look for imperfect transposon mismatch. This is a slower process and usually less common, so will try not to go through this every time.
-            if (!$tn_match){
+            if (!$tn_match and $maxmm > 0){
                 for my $i (16 .. 17){
-                    my $tseq = substr($subseq, $i, $tnleng);
-                    my $num_mm = 0;
-                    my @tseqa = split(//, $tseq);
-                    for my $j (0 .. $#tnarray){
-                        $num_mm++ unless ($tnarray[$j] eq $tseqa[$j]);
-                    }
+                    #my $tseq = substr($subseq, $i, $tnleng);
+                    my $tseq = substr($seq, $i, $tnleng);
+                    
+                    ### old way
+                    #my $num_mm = 0;
+                    #my @tseqa = split(//, $tseq);
+                    #for my $j (0 .. $#tnarray){
+                    #    $num_mm++ unless ($tnarray[$j] eq $tseqa[$j]);
+                    #}
+                    
+                    ## new way (xor, should be much faster)
+                    my $num_mm = ($tseq ^ $tn) =~ tr/\0//c;
+                    
                     next unless $num_mm <= $maxmm;
                     $reads_w_tn{$first4}++;
                     $tot_tn++;
@@ -215,7 +233,8 @@ if ($proc_reads){
                 }
             }
             next unless $tn_match;
-            my $finseq = substr($subseq, 0, $tn_match);
+            #my $finseq = substr($subseq, 0, $tn_match);
+            my $finseq = substr($seq, 0, $tn_match);
             $sorted{$first4}{$finseq}{'count'}++;
             $sorted{$first4}{$finseq}{'leng'} = $tn_match;
         }
