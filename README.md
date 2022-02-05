@@ -7,12 +7,12 @@ Transposon insertion sequencing (TIS) harnesses the power and throughput of next
 
 **Please choose the approriate script based on which library prep method you used:**
 
-* "[Goodman](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3310428/)" protocol: [INSeq_read_preprocess.pl](###INSeq_read_preprocess.pl)
-* "[Boll](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7861349/)" protocol: [INSeq_read_preprocess_Boll_protocol.pl](###INSeq_read_preprocess_Boll_protocol.pl)
+* "[Goodman](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3310428/)" protocol: [INSeq_read_preprocess.pl](INSeq_read_preprocess.pl)
+* "[Boll](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7861349/)" protocol: [INSeq_read_preprocess_Boll_protocol.pl](INSeq_read_preprocess_Boll_protocol.pl)
 
 ## Scripts:
 
-###INSeq_read_preprocess.pl 
+### INSeq_read_preprocess.pl 
 
 For sequence reads generated using the "INSeq" transposon insertion sequencing protocol as described by [Goodman, Wu, and Gordon](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3310428/), performs the following processing steps:
   
@@ -86,7 +86,7 @@ Files will start with a prefix corresponding to the pool_id and barcode given in
 - `<prefix>.bowtie`: Alignment file produced by bowtie
 - `<prefix>.<reference_sequence>.wiggle`: Read alignment counts for each of the individual records that was present in the reference genome sequence file. For example, if the file given to the `-r` option contained one chromosomal sequence record and one plasmid sequence record there should be two of these files per barcode, each named according to the sequence record name and with coordinates corresponding to positions along the indicated sequence. If outputting in the default "wiggle" format, each line of the file will contain a sequence position (1-based) corresponding to a transposon insertion site and the number of reads aligning to that position separated by a tab.  Negative positions represent reads aligned to the left flank (upstream) of the insertion site, positive positions represent reads aligned to the right flank (downstream) of the insertion site.
 
-###INSeq_read_preprocess_Boll_protocol.pl 
+### INSeq_read_preprocess_Boll_protocol.pl 
 
 For sequence reads generated using the transposon insertion sequencing protocol as described by [Kazi, Schargel, and Boll](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7861349/). In this process, fastq files should have already been demultiplexed on the instrument. This script performs the following processing steps:
   
