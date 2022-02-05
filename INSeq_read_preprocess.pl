@@ -1247,7 +1247,7 @@ foreach my $slice (@bc_list){
                 
                 #output read counts in format requested
                 my $tot_out = $l_out + $r_out;
-                my $outline = "$site\t$l_out\n$site\t$r_out\n";
+                my $outline = "-$site\t$l_out\n$site\t$r_out\n";
                 $outline = "$l_out\t-$site\n$r_out\t$site\n" if $outform eq "essen";
                 $outline = ">$ref\t$site\t$l_out\t$r_out\t$tot_out\n" if $outform eq "inseq";
                 print $wig_out "$outline";
