@@ -3,6 +3,7 @@ Software tools for processing sequencing data from transposon insertion sequenci
 
 ## Introduction
 
+<<<<<<< HEAD
 Transposon insertion sequencing (TIS) harnesses the power and throughput of next generation sequencing to allow for genome-wide analysis of microbial gene function and pathways. Several methods for performing TIS library preparation and sequencing have been described (TnSeq, INSeq, HITS, TraDIS) and software tools such as INSeq\_analysis and ESSENTIALS have been created to analyze sequencing results. TIS\_tools is a set of perl scripts developed as a bridge between sequencing and analyisis by performing read alignments, filtering alignments, and outputting read count data in a format suitable for downstream analysis. 
 
 **Please choose the approriate script based on which library prep method you used:**
@@ -15,6 +16,15 @@ Transposon insertion sequencing (TIS) harnesses the power and throughput of next
 ###INSeq_read_preprocess.pl 
 
 For sequence reads generated using the "INSeq" transposon insertion sequencing protocol as described by [Goodman, Wu, and Gordon](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3310428/), performs the following processing steps:
+=======
+Transposon insertion sequencing (TIS) harnesses the power and throughput of next generation sequencing to allow for genome-wide analysis of microbial gene function and pathways. Several methods for performing TIS library preparation and sequencing have been described (TnSeq, INSeq, HITS, TraDIS) and software tools such as INSeq_analysis and ESSENTIALS have been created to analyze sequencing results. TIS_tools is a set of perl scripts developed as a bridge between sequencing and analyisis by performing read alignments, filtering alignments, and outputting read count data in a format suitable for downstream analysis. 
+
+## Scripts:
+
+### INSeq_read_preprocess.pl 
+
+For sequence reads generated using the "INSeq" transposon insertion sequencing protocol, performs the following processing steps:
+>>>>>>> ee6439798cb1fe8691e17259ce901e82a7ea5374
   
   1. Separate multiplexed libraries by "barcode" sequence
   2. Identify and trim transposon sequence from reads
@@ -84,6 +94,7 @@ Files beginning with "temp_" can be safely deleted.
 Files will start with a prefix corresponding to the pool_id and barcode given in the barcode text file above. For example, if one of the pool IDs was "Input_1" identified with barcode "TATA", then all files relating to this pool will be prefixed with "Input_1_TATA".  
 - `<prefix>.reads.fasta`: Fasta formatted file of all sorted, de-barcoded, and transposon trimmed read sequences associated with this pool. 
 - `<prefix>.bowtie`: Alignment file produced by bowtie
+<<<<<<< HEAD
 - `<prefix>.<reference_sequence>.wiggle`: Read alignment counts for each of the individual records that was present in the reference genome sequence file. For example, if the file given to the `-r` option contained one chromosomal sequence record and one plasmid sequence record there should be two of these files per barcode, each named according to the sequence record name and with coordinates corresponding to positions along the indicated sequence. If outputting in the default "wiggle" format, each line of the file will contain a sequence position (1-based) corresponding to a transposon insertion site and the number of reads aligning to that position separated by a tab.  Negative positions represent reads aligned to the left flank (upstream) of the insertion site, positive positions represent reads aligned to the right flank (downstream) of the insertion site.
 
 ###INSeq_read_preprocess_Boll_protocol.pl 
@@ -160,3 +171,7 @@ Files will start with a prefix corresponding to the pool_ID given in the input f
 
 
  
+=======
+- `<prefix>.<reference_sequence>.wiggle`: Read alignment counts for each of the individual records that was present in the reference genome sequence file. For example, if the file given to the `-r` option contained one chromosomal sequence record and one plasmid sequence record there should be two of these files per barcode, each named according to the sequence record name and with coordinates corresponding to positions along the indicated sequence. If outputting in the default "wiggle" format, each line of the file will contain a sequence position (1-based) corresponding to a transposon insertion site and the number of reads aligning to that position separated by a tab. When a particular position is listed twice, the first listing is the number of reads aligning to the left flank (upstream) of the insertion site and the second listing is the number of reads aligning to the right flank (downstream) of the insertion site.
+
+>>>>>>> ee6439798cb1fe8691e17259ce901e82a7ea5374
