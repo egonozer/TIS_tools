@@ -8,7 +8,7 @@ Transposon insertion sequencing (TIS) harnesses the power and throughput of next
 **Please choose the approriate script based on which library prep method you used:**
 
 * "[Goodman](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3310428/)" protocol: [INSeq_read_preprocess.pl](INSeq_read_preprocess.pl)
-* "[Boll](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7861349/)" protocol: [INSeq_read_preprocess_Boll_protocol.pl](INSeq_read_preprocess_Boll_protocol.pl)
+* "[Stacey-Boll](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7861349/)" protocol: [INSeq_read_preprocess_Boll_protocol.pl](INSeq_read_preprocess_Boll_protocol.pl)
 
 ## Scripts:
 
