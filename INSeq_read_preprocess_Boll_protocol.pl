@@ -1,8 +1,8 @@
 #!/usr/bin/perl
 
-my $version = 0.3;
+my $version = 1.1.0;
 
-## Changes from v0.2:
+## Changes from v1.0.0:
 ## Calculate number of shared and total insertion sites. Will separately calculate for input pool(s) containing the word "input" or as marked by the user in the input file
 ## Outputs stats to a file by default instead of just to STDOUT. 
 ## Removed File::Which dependency. Added subroutine to test for whether executable is in PATH that uses only core Perl modules
