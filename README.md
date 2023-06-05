@@ -88,27 +88,27 @@ Files will start with a prefix corresponding to the pool_id and barcode given in
 
 ### INSeq_read_preprocess_Boll_protocol.pl 
 
-For sequence reads generated using the transposon insertion sequencing protocol as described by [Kazi, Schargel, and Boll](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7861349/). In this process, fastq files should have already been demultiplexed on the instrument. This script performs the following processing steps:
+For sequence reads generated using the transposon insertion sequencing protocol as described by [Kazi, Schargel, and Boll](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7861349/). In this process, fastq files should have already been demultiplexed on the instrument into one read file per pool or condition. This script performs the following processing steps:
   
   1. Identify and trim transposon sequence from reads
   2. Align reads to reference sequence(s)
   3. Assign aligments to positions in reference sequence
-  4. Read count correction and filtering
-  5. Output read counts
+  4. Output read counts
   
 **Prerequisites:**   
 [bowtie](http://bowtie-bio.sourceforge.net/index.shtml) (version 0.12.8 or higher)
   
 **Usage:**   
-`perl INSeq_read_preprocess.pl [options] -r <file of read files> -g <reference_sequence.fasta>`
+`perl INSeq_read_preprocess_Boll_protocol.pl [options] -r <file of read files> -g <reference_sequence.fasta>`
 
 **Required arguments:**  
-`-r` File of demultiplexed read files corresponding to seprate pools,
-        conditions, and/or replicates. Read files must be in fastq format
-        and can be gzipped. File should have the following format and be tab
-        delimited with one pool / read file per line:
+`-r` File of demultiplexed read files corresponding to seprate pools, conditions, and/or replicates. Read files must be in fastq format and can be gzipped.
+        
+OPTIONAL: Mark input pool(s) with 'i' in a third column. Otherwise will guess input are files that have 'input' (case insensitive) at the beginning of the pool_ID name. This will only be used for insertion site calculations and won't affect read count output files.
+        
+File should have the following format and be tab delimited with one pool / read file per line:
 
-        path/to/read_file.fastq(.gz) <tab> pool_ID
+path/to/read_file.fastq(.gz) <tab> pool_ID <tab> 'i' or blank (OPTIONAL)
           
 `-g` Reference genome sequence file, in fasta format. For best results, this file must include sequences for ALL genetic material present in the organism (i.e. chromosomes and plasmids).
   
@@ -124,36 +124,38 @@ For sequence reads generated using the transposon insertion sequencing protocol 
 
 `-s` Minimum number of total reads (left flank + right flank) at an insertion site required for output (default: 3)  
 `-b` Path to directory containing bowtie and bowtie-build. For example: /Users/myname/applications/bowtie_folder (default: assumes this directory is in your PATH)  
-`-p` Number of parallel threads to run (default: 1)
-
-**Program output:**  
-As the script runs, several statistics will be output to the screen. If you wish to capture these results, simply redirect STDOUT to a file like so:  
-` > stats.txt`  
-or:  
-` | tee stats.txt`  
-
-Barcode sorting, trimming, and transposon trimming results will take the following format:  
-```
-Total reads: xxx  
-Total reads with barcode: xxx  
-Total reads with transposon: xxx  
-Transposons with 0 mismatch(es): xxx
-Transposons with 1 mismatch(es): xxx
-pool	bc	#_w_bc	%_w_bc	#_w_tn %_w_tn
-...
-```
-`Total reads` is the total number of reads found in the input read fastq file  
-`Total reads with barcode` is the total number of reads found to have a recognizable barcode sequence at the start of the read sequence  
-`Total reads with transposon` is the total number of reads (from those found to have a barcode sequence) that had the given transposon sequence at the expected position (16 or 17 bp from the 5' end after removal of barcode sequence)  
-`pool`: Pool ID  
-`bc`: Barcode  
-`#_w_bc`: Number of reads with this barcode  
-`%_w_bc`: Percentage of total reads with this barcode  
-`#_w_tn`: Number of reads with this barcode found to have the given transposon sequence in the expected position  
-`%_w_tn`: Percentage of reads with this barcode found to have the given transposon sequence in the expected position
+`-p` Number of parallel threads to run (default: 1)  
+`-P` Output stats files prefix (default: 'out'). Output files will be titled:  
+'<prefix>.inseq_read_preprocess_stats.txt'  
+'<prefix>.inseq_read_preprocess_site_counts.txt'  
 
 **Output files:**    
-Files beginning with "temp_" can be safely deleted.  
 Files will start with a prefix corresponding to the pool_ID given in the input file above. 
 
 - `<prefix>.<reference_sequence>.wiggle`: Read alignment counts for each of the individual records that was present in the reference genome sequence file. For example, if the file given to the `-r` option contained one chromosomal sequence record and one plasmid sequence record there should be two of these files per pool, each named according to the sequence record name and with coordinates corresponding to positions along the indicated sequence. If outputting in the default "wiggle" format, each line of the file will contain a sequence position (1-based) corresponding to a transposon insertion site and the number of reads aligning to that position separated by a tab. Negative positions represent reads aligned to the left flank (upstream) of the insertion site, positive positions represent reads aligned to the right flank (downstream) of the insertion site.
+
+Summary statistics will be output to files and to the screen:
+
+- `<prefix>.inseq_read_preprocess_stats.txt`: Per-file summary statistics
+
+`pool`: Pool ID  
+`input?`: 'Y' = Pool was identifed as an input pool by the user or by pool name  
+`total_reads`: Number of reads found in the input read fastq file  
+`reads_w_tn`: Number of reads in which the given transposon sequence was found  
+`reads_w_tn_perfect`: Number of reads in which the given transposon sequence was found without any mismatch errors  
+`reads_correct_length`: Number of reads with the expected legnth after the transposon sequence (23 - 25 bp)  
+`reads_aligned_to_refs`: Number of reads with single alignments to any of the reference sequences  
+`reads_aligned_TA`: Number of reads with single alignments that aligned at a TA site in a reference sequence  
+`reads_aligned_TA_perfect`: Number of reads with single alignments without mismatches that aligned at a TA site in a reference sequence  
+`X_sites`: Number of unique TA sites in sequence X with any reads mapped  
+`X_sites_gte_Y`: Number of unique TA sites in sequence X with at least Y reads mapped  
+
+- `<prefix>.inseq_read_preprocess_site_counts.txt`: Summary of transposon insertion site counts in the given genome sequence(s)
+
+`ID`: Sequence ID  
+`TA_sites`: Total TA motif sites in the sequence  
+`pools`: Indicates whether the figures apply to all pools ("all") or just to those identified as input pools ("input")  
+`sites_w_ins`: Number of TA sites with at least one read aligning in any of the pools  
+`sites_w_ins_all_pools`: Number of TA sites with at least one read aligning in all of the pools  
+`sites_w_ins_gteYrds`: Number of TA sites with at least Y reads aligning in any of the pools  
+`sites_w_ins_all_pools_gteYrds`: Number of TA sites with at least Y reads aligning in all of the pools  
