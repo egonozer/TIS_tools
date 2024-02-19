@@ -1,6 +1,12 @@
 #!/usr/bin/perl
 
-my $version = 1.1.0;
+my $version = 1.2;
+
+## Changes from v1.1.1:
+## Added option to only output reads at selected shared insertion sites
+
+## Changes from v1.1.0:
+## Fixed small bug in which output to the site_counts file was being duplicated in the case of multiple reference sequences
 
 ## Changes from v1.0.0:
 ## Calculate number of shared and total insertion sites. Will separately calculate for input pool(s) containing the word "input" or as marked by the user in the input file
@@ -24,7 +30,7 @@ $|++;
 ## Inspired in part by Andrew Goodman's INSeq Analysis Pipeline
 
 my $usage = "
-INSeq_read_preprocess.pl (version: $version)
+INSeq_read_preprocess_Boll_protocol.pl (version: $version)
 
 For INSeq experiments, peforms the following processing steps on raw sequencing
 reads:
@@ -71,6 +77,12 @@ Options:
         (default: 'wiggl')
   -s    Minimum number of total reads at a site (left+right) required for output
         (default: 3)
+  -i    If selected, all output count files will only contain positions and read
+        counts from sites with >= the minimum number of total reads given by -s
+        above in each of the input pool replicates. If no input pools are 
+        marked or identified in the read input file given by -r, this option
+        will be ignored.
+        (default: output all sites with at least the minimmum tltal number of reads) 
   -b    Path to directory containing bowtie and bowtie-build. For example:
         /Users/myname/applications/bowtie_folder
         (default: assumes this directory is in your PATH)
@@ -84,8 +96,8 @@ Options:
 ";
 
 use Getopt::Std;
-use vars qw( $opt_r $opt_g $opt_t $opt_m $opt_x $opt_o $opt_s $opt_h $opt_d $opt_b $opt_p $opt_P );
-getopts('r:g:t:m:x:o:s:hd:b:p:P:');
+use vars qw( $opt_r $opt_g $opt_t $opt_m $opt_x $opt_o $opt_s $opt_i $opt_h $opt_d $opt_b $opt_p $opt_P );
+getopts('r:g:t:m:x:o:s:ihd:b:p:P:');
 
 die $usage unless ($opt_r and $opt_g);
 
@@ -295,7 +307,21 @@ unless (%inpool){
         print STDERR "\nGuessing input pools:\n";
         print STDERR join("\n", sort(keys %inpool_guess)), "\n";
         %inpool = %inpool_guess;
+    } else {
+        print STDERR "\n***WARNING:*** \n";
+        print STDERR "No input pools given or discernable from pool names. Rename input pool ids
+to start with 'input' or add the letter 'i' to a third column for the
+appropriate pools in the file of read files given to '-r' if you'd like 
+insertion site statistics for the input read pools.\n";
+        if ($opt_i){
+            print STDERR "\nAll sites with >= $minrd total reads per replicate will be output\n.";
+            $opt_i = 0;
+        }
     }
+}
+if ($opt_i){
+    print STDERR "\nOnly sites with >= $minrd total reads in all ", scalar keys %inpool, " input 
+pools will be included in the output files.\n"
 }
 
 #create bowtie index files
@@ -425,14 +451,16 @@ my %site_counts;
 my %in_site_counts;
 my %site_counts_gte;
 my %in_site_counts_gte;
+my %outlines;
 foreach my $pool_id (@pools){
-    print STDERR "Outputting $pool_id alignments\n";
+    print STDERR "Processing $pool_id alignments\n";
     foreach my $ref (sort keys %{$sites{$pool_id}}){
         $refs{$ref}++;
         my $outfile = "$pool_id.$ref.wiggle";
         $outfile = "allta_split_$pool_id\_$ref.counts.txt" if $outform eq "essen";
         $outfile = "INSEQ_experiment.scarf.bowtiemapped_processed.txt_$pool_id\_$ref" if $outform eq "inseq";
-        open (my $wig_out, "> $outfile") or die "ERROR: Can't open output file '$outfile': $!\n";
+        $outlines{$pool_id}{$ref}{'outfile'} = $outfile;
+        #open (my $wig_out, "> $outfile") or die "ERROR: Can't open output file '$outfile': $!\n";
         
         #for status update
         my $num_sites = keys %{$sites{$pool_id}{$ref}};
@@ -479,9 +507,10 @@ foreach my $pool_id (@pools){
             my $outline = "-$site\t$l_out\n$site\t$r_out\n";
             $outline = "$l_out\t-$site\n$r_out\t$site\n" if $outform eq "essen";
             $outline = ">$ref\t$site\t$l_out\t$r_out\t$tot_out\n" if $outform eq "inseq";
-            print $wig_out "$outline";
+            $outlines{$pool_id}{$ref}{'sites'}{$site} = $outline;
+            #print $wig_out "$outline";
         }
-        close ($wig_out);
+        #close ($wig_out);
         print STDERR "\r\tProcessing site #$site_count (of $num_sites) ... Done!\n";
         print STDERR "\t\t$ref: # sites total: $site_count, # sites with at least $minrd reads: $site_gte_count\n";
         $results{$pool_id}{$ref}{'site_count'} = $site_count;
@@ -502,6 +531,22 @@ foreach my $pool_id (@pools){
     }
 }
 print STDERR "\n";
+
+foreach my $pool_id (@pools){
+    foreach my $ref (sort keys %{$outlines{$pool_id}}){
+        my $outfile = $outlines{$pool_id}{$ref}{'outfile'};
+        open (my $wig_out, ">$outfile") or die "ERROR: Can't open $outfile for writing: $!\n";
+        foreach my $site (sort {$a <=> $b} keys %{$outlines{$pool_id}{$ref}{'sites'}}){
+            my $outline = $outlines{$pool_id}{$ref}{'sites'}{$site};
+            if ($opt_i){
+                next unless exists($in_site_counts_gte{$ref}{$site});
+                next if $in_site_counts_gte{$ref}{$site} < scalar %inpool;
+            }
+            print $wig_out "$outline";
+        }
+        close ($wig_out);
+    }
+}
 
 open (my $sout, ">$outpref.inseq_read_preprocess_stats.txt") or die "ERROR: Can't open stats output file: $!\n";
 my $string = "pool\tinput?\ttotal_reads\treads_w_tn\treads_w_tn_perfect\treads_correct_length\treads_aligned_to_refs\treads_aligned_TA\treads_aligned_TA_perfect";
@@ -536,74 +581,35 @@ $string = "";
 print "\n";
 
 open ($sout, ">$outpref.inseq_read_preprocess_site_counts.txt") or die "ERROR: Can't open site_counts output file: $!\n";
-$string .= "ID\tTA_sites\tpools\tsites_w_ins\tsites_w_ins_all_pools\tsites_w_ins_gte${minrd}rds\tsites_w_ins_all_pools_gte${minrd}rds\n";
+$string = "ID\tTA_sites\tpools\tsites_w_ins\tsites_w_ins_all_pools\tsites_w_ins_gte${minrd}rds\tsites_w_ins_all_pools_gte${minrd}rds\n";
 foreach my $ref (sort keys %refs){
-    my $total_sites_any = scalar(%{$site_counts{$ref}});
-    my $total_sites_any_gte = scalar(%{$site_counts_gte{$ref}});
-    my $in_sites_any = scalar(%{$in_site_counts{$ref}});
-    my $in_sites_any_gte = scalar(%{$in_site_counts_gte{$ref}});
-    my ($total_sites_all, $total_sites_all_gte, $in_sites_all, $in_sites_all_gte) = (0) x 4;
+    my ($total_sites_any, $total_sites_any_gte,$total_sites_all, $total_sites_all_gte) = (0) x 4;
+    $total_sites_any = scalar(%{$site_counts{$ref}});
+    $total_sites_any_gte = scalar(%{$site_counts_gte{$ref}});
     foreach my $site (keys %{$site_counts{$ref}}){
         $total_sites_all++ if $site_counts{$ref}{$site} == scalar(@pools);
     }
     foreach my $site (keys %{$site_counts_gte{$ref}}){
         $total_sites_all_gte++ if $site_counts_gte{$ref}{$site} == scalar(@pools);
     }
-    foreach my $site (keys %{$in_site_counts{$ref}}){
-        $in_sites_all++ if $in_site_counts{$ref}{$site} == scalar(%inpool);
-    }
-    foreach my $site (keys %{$in_site_counts_gte{$ref}}){
-        $in_sites_all_gte++ if $in_site_counts_gte{$ref}{$site} == scalar(%inpool);
-    }
     #$string = "\nTotal TA sites: $tasite_count{$ref}\n";
     my $ta_count = $tasite_count{$ref};
     $string .= "$ref\t$ta_count\tall\t$total_sites_any\t$total_sites_all\t$total_sites_any_gte\t$total_sites_all_gte\n";
     if (%inpool){
+        my ($in_sites_any, $in_sites_any_gte, $in_sites_all, $in_sites_all_gte) = (0) x 4;
+        $in_sites_any = scalar(%{$in_site_counts{$ref}});
+        $in_sites_any_gte = scalar(%{$in_site_counts_gte{$ref}});
+        foreach my $site (keys %{$in_site_counts{$ref}}){
+            $in_sites_all++ if $in_site_counts{$ref}{$site} == scalar(%inpool);
+        }
+        foreach my $site (keys %{$in_site_counts_gte{$ref}}){
+            $in_sites_all_gte++ if $in_site_counts_gte{$ref}{$site} == scalar(%inpool);
+        }
         $string .= "$ref\t$ta_count\tinput\t$in_sites_any\t$in_sites_all\t$in_sites_any_gte\t$in_sites_all_gte\n";
     }
-    output($string);
 }
+output($string);
 close($sout);
-
-        #$results{$pool_id}{'reads_total'} = $total_reads;
-        #$results{$pool_id}{'reads_tn'} = $tot_tn;
-        #$results{$pool_id}{'reads_tn_perfect'} = $tn_mms{0};
-        #$results{$pool_id}{'reads_right_length'} = $tot_ln;
-        #$results{$pool_id}{'reads_aligned'} += $count;
-        #$results{$pool_id}{$type} += $count; #perf / imperf
-        ##not_ta = did not align to TA site
-        #    #max_mm = number of mismatches exceeded maximum set by user
-        #    $results{$pool_id}{$skip} += $count;
-        #$results{$pool_id}{$ref}{'site_gte_count'}++;
-        #$results{$pool_id}{$ref}{'site_count'} = $site_count;
-
-
-
-#output summary
-#print "ID\tbarcode\treads_aligned\treads_align_TA\tperfect\tmismatch\tshifted\n";
-#foreach my $slice (@bc_list){
-#    my ($id, $bar) = @{$slice};
-#    if ($align_stats{$bar}){
-#        my @array = @{$align_stats{$bar}};
-#        print "$id\t$bar\t", join("\t", @array), "\n";
-#    }
-#}
-#print "\nreference\tID\tbarcode\ttotal_sites\ttype1\t1_corrected\ttype2\t2_corrected\ttype3\t3_corrected\ttype4\t4_corrected\ttype5\t5_corrected\ttype6\t6_corrected\ttype7\t7_corrected\ttype8\t8_corrected\n";
-#foreach my $ref (sort keys %refs){
-#    foreach my $slice (@bc_list){
-#        my ($id, $bar) = @{$slice};
-#        print "$ref\t$id\t$bar";
-#        my @st = @{$all_st{$ref}{$bar}};
-#        my @corr = @{$all_corr{$ref}{$bar}};
-#        for my $i (0 .. 8){
-#            print "\t$st[$i]";
-#            next if $i == 0;
-#            print "\t$corr[$i]";
-#        }
-#        print "\n";
-#    }
-#}
-
 
 #---------------SUBROUTINES----------------
 sub is_path {

@@ -104,7 +104,7 @@ For sequence reads generated using the transposon insertion sequencing protocol 
 **Required arguments:**  
 `-r` File of demultiplexed read files corresponding to seprate pools, conditions, and/or replicates. Read files must be in fastq format and can be gzipped.
         
-OPTIONAL: Mark input pool(s) with 'i' in a third column. Otherwise will guess input are files that have 'input' (case insensitive) at the beginning of the pool_ID name. This will only be used for insertion site calculations and won't affect read count output files.
+OPTIONAL: Mark input pool(s) with 'i' in a third column. Otherwise will guess input are files that have 'input' (case insensitive) at the beginning of the pool_ID name. This designation be used for insertion site calculations. If the `-i` option is given, then output read count files will be filtered based on the marked pools (see below).
         
 File should have the following format and be tab delimited with one pool / read file per line:
 
@@ -122,7 +122,8 @@ path/to/read_file.fastq(.gz) <tab> pool_ID <tab> 'i' or blank (OPTIONAL)
 + 'inseq': Files will be in in the format of *_bowtiemap_processed.txt files produced by Goodman et al's INSeq_analysis software  
 + 'essen': Files will be in the format of allta_split_*.counts.txt files produced by ESSENTIALS  
 
-`-s` Minimum number of total reads (left flank + right flank) at an insertion site required for output (default: 3)  
+`-s` Minimum number of total reads (left flank + right flank) at an insertion site required for output (default: 3) 
+`-i` If selected, all output count files will only contain positions and read counts from sites with at least the minumum number of total reads given by `-s` above in each of the input pool replicates. If no input pools or marked or identified int eh read input file given to `-r`, this option will be ignored. 
 `-b` Path to directory containing bowtie and bowtie-build. For example: /Users/myname/applications/bowtie_folder (default: assumes this directory is in your PATH)  
 `-p` Number of parallel threads to run (default: 1)  
 `-P` Output stats files prefix (default: 'out'). Output files will be titled:  
