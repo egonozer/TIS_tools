@@ -1,6 +1,10 @@
 #!/usr/bin/perl
 
-my $version = 1.2;
+my $version = 1.2.1;
+
+## Changes from v1.2
+## Now outputs a file listing all insertion sites with the minimum total number of reads in any pool (default) or in all of the selected pools if -i is given
+## Truncate reference sequence IDs with whitespaces
 
 ## Changes from v1.1.1:
 ## Added option to only output reads at selected shared insertion sites
@@ -39,6 +43,8 @@ reads:
    (expected if 51 bp reads produced)
 2) align reads to the reference genome
 3) filter alignments
+4) output list of insertion sites with >= min reads in any read file or, if -i 
+   is given, sites with >= min reads in all of the read files marked with 'i'
 
 Prerequisites:
 bowtie (version 0.12.8 or higher)
@@ -58,7 +64,7 @@ Required:
   
   -g    Reference genome sequence file, in fasta format. For best results, this
         file must include ALL sequences present in the organism (i.e. chromsomes
-        and plasmids)
+        and plasmids). Sequence IDs will be truncated after the first whitespace.
 
 Options:
   -t    Trim sequence
@@ -91,6 +97,7 @@ Options:
   -P    Output stats files prefix. Output files will be titled 
         '<prefix>.inseq_read_preprocess_stats.txt'
         '<prefix>.inseq_read_preprocess_site_counts.txt'
+        '<prefix>.<ref>_insertion_sites.txt'
         (default: 'out')
 
 ";
@@ -145,6 +152,13 @@ while (my $line = <$gin>){
             $seq = "";
         }
         $id = substr($line, 1);
+        my $old_id = $id;
+        $id =~ s/^\s*(\S+)\s.+$/$1/;
+        if (length($old_id) != length($id)){
+            print STDERR "Truncating reference sequence ID '$old_id' --> '$id'\n";
+        } else {
+            print STDERR "Reading reference sequence ID '$id'\n";
+        }
         next;
     }
     $seq .= $line;
@@ -320,8 +334,7 @@ insertion site statistics for the input read pools.\n";
     }
 }
 if ($opt_i){
-    print STDERR "\nOnly sites with >= $minrd total reads in all ", scalar keys %inpool, " input 
-pools will be included in the output files.\n"
+    print STDERR "\nOnly sites with >= $minrd total reads in all ", scalar keys %inpool, " marked input pools will be included in the output files.\n"
 }
 
 #create bowtie index files
@@ -376,6 +389,7 @@ print STDERR "\tParsing bowtie alignments ...\n";
 while (my $line = <$in>){
     chomp $line;
     my ($id, $dir, $ref, $pos, $seq, $qual, $x1, $mm) = split("\t", $line);
+    $ref =~ s/^\s*(\S+)\s.+$/$1/;
     my $serial = $id;
     my $readseq = $read_serials{$serial};
     my ($skip, $side, $site, $type) = (0) x 4;
@@ -545,6 +559,24 @@ foreach my $pool_id (@pools){
             print $wig_out "$outline";
         }
         close ($wig_out);
+    }
+}
+if ($opt_i){
+    foreach my $ref (sort keys %in_site_counts_gte){
+        open (my $site_out, ">$outpref.${ref}_insertion_sites.txt") or die "ERROR: Can't open sites file for writing: $!\n";
+        foreach my $site (sort{$a <=> $b} keys %{$in_site_counts_gte{$ref}}){
+            next if $in_site_counts_gte{$ref}{$site} < scalar %inpool;
+            print $site_out "$site\n";
+        }
+        close ($site_out);
+    }
+} else {
+    foreach my $ref (sort keys %site_counts_gte){
+        open (my $site_out, ">$outpref.${ref}_insertion_sites.txt") or die "ERROR: Can't open sites file for writing: $!\n";
+        foreach my $site (sort{$a <=> $b} keys %{$site_counts_gte{$ref}}){
+            print $site_out "$site\n";
+        }
+        close ($site_out);
     }
 }
 
